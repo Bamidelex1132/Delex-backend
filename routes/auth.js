@@ -1,41 +1,51 @@
-const express = require('express');
-const router = express.Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+// routes/auth.js
+const express = require('express')
+const supabase = require('../supabaseClient') // <- CommonJS import
+
+const router = express.Router()
 
 // Register route
 router.post('/register', async (req, res) => {
-const { name, email, password, confirmPassword } = req.body;
+  const { email, password } = req.body
 
-if (password !== confirmPassword)
-return res.send('Error: Passwords do not match');
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' })
+  }
 
-const userExists = await User.findOne({ email });
-if (userExists)
-return res.send('Error: Email already registered');
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  })
 
-const hashedPassword = await bcrypt.hash(password, 10);
-const user = new User({ name, email, password: hashedPassword });
+  if (error) {
+    return res.status(400).json({ error: error.message })
+  }
 
-await user.save();
-res.redirect('/login.html');
-});
+  res.status(200).json({ message: 'User registered successfully', user: data.user })
+})
 
 // Login route
 router.post('/login', async (req, res) => {
-const { email, password } = req.body;
+  const { email, password } = req.body
 
-const user = await User.findOne({ email });
-if (!user) return res.send('Error: User not found');
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' })
+  }
 
-const match = await bcrypt.compare(password, user.password);
-if (!match) return res.send('Error: Invalid password');
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
-const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+  if (error) {
+    return res.status(400).json({ error: error.message })
+  }
 
-res.cookie('token', token, { httpOnly: true });
-res.redirect('/dashboard.html');
-});
+  res.status(200).json({
+    message: 'Login successful',
+    user: data.user,
+    access_token: data.session?.access_token,
+  })
+})
 
-module.exports = router;
+module.exports = router // <- CommonJS export

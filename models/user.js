@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const supabase =require('./supabaseClient');
 
 const userSchema = new mongoose.Schema({
 name: { type: String, required: true },
