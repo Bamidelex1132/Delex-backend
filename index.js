@@ -24,13 +24,3 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
 
-// Optional: Test Supabase query
-const supabase = require('./supabaseClient')
-;(async () => {
-  const { data, error } = await supabase.from('users').select('*')
-  if (error) {
-    console.error('Supabase Error:', error)
-  } else {
-    console.log('Users:', data)
-  }
-})()

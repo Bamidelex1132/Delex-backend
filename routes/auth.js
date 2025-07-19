@@ -5,7 +5,7 @@ const supabase = require('../supabaseClient') // <- CommonJS import
 const router = express.Router()
 
 // Register route
-router.post('https://delex-backend-production.up.railway.app/auth/register', async (req, res) => {
+router.post('/register', async (req, res) => {
   const { email, password } = req.body
 
   if (!email || !password) {
